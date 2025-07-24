@@ -1,38 +1,212 @@
-.App {
-  text-align: center;
-}
+@import url('https://fonts.googleapis.com/css2?family=Open-Sans:wght@500;700&display=swap');
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+body {
+  margin: 0;
+  padding: 0;
+  background: #0b0b0f; /* dark background */
+  color: #f0eada; /* light text */
+  font-family: 'Orbitron', sans-serif;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  max-width: 99%;
+  margin: 5% auto;
+  width: 55%;
+  text-align: center;
+  padding: 2rem;
+  background: #141414; /* deep black */
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); /* subtle red glow */
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #ffd000; /* gold */
+}
+
+.score {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #ffcc00; /* gold */
+}
+
+.word {
+  font-size: 3.5rem;
+  margin: 1.5rem 0;
+  color: #ff0000; /* bright red focus */
+}
+
+.word.correct {
+  color: #4aedc4; /* optional green for correct */
+}
+
+.word.wrong {
+  color: #ff4d6d; /* optional red for wrong */
+}
+
+#translation-container {
+  height: 4rem;           /* fixed height so it doesn't jump */
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: #aaaaaa;
+  transition: background 0.3s;
+  width: 40%;
+  margin: 5px auto 20px auto; /* center and add margin */
 }
 
-.App-link {
-  color: #61dafb;
+#translation-container:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.translation {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: #aaaaaa;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  background: linear-gradient(145deg, #222, #111);
+  color: #f0eada;
+  transition: background 0.3s, color 0.3s;
+}
+
+.btn.correct {
+  background: #4aedc4;
+  color: #0b0b0f;
+  border: none;
+}
+
+.btn.wrong {
+  background: #ff4d6d;
+  color: #0b0b0f;
+  border: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: #333;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #c10f0f; /* gold */
+  color: #0b0b0f;
+}
+
+.retry-btn:hover {
+  background: #860c0c; /* darker gold */
+}
+
+.help-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #333;
+  color: #fff;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #666;
+  transition: background 0.3s;
+  z-index: 10;
+}
+
+.help-button:hover {
+  background: #555;
+}
+
+.rules-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.rules-box {
+  background: #222;
+  color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 90%;
+  width: 400px;
+  text-align: left;
+}
+
+.rules-box h2 {
+  margin-top: 0;
+}
+
+.rules-box ul {
+  padding-left: 1.2rem;
+}
+
+.rules-box button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.rules-box button:hover {
+  background: #666;
+}
+
+.level-select {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #222;
+  color: #ffcc00; /* gold text */
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  appearance: none;
+}
+
+.level-select option {
+  background: #222;
+  color: #fff;
 }
