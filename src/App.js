@@ -22,13 +22,14 @@ function App() {
   const [currentWord, setCurrentWord] = useState(null);
   const [score, setScore] = useState(0);
   const [translation, setTranslation] = useState("");
+  const [translationold, setTranslationOld] = useState("");
   const [showTranslation, setShowTranslation] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [showRetry, setShowRetry] = useState(false);
   const [keyLock, setKeyLock] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const originalwordlist = false;
+  const [selectedLevel, setSelectedLevel] = useState("A1");
+  const [originalwordlist, setOriginalwordlist] = useState(false);
 
   useEffect(() => {
     if (originalwordlist) {
@@ -40,7 +41,7 @@ function App() {
       .then(res => res.json())
       .then(setWords);
     }
-  }, []);
+  }, [originalwordlist]);
 
   useEffect(() => {
     if (words.length > 0) pickRandomWord();
@@ -49,7 +50,7 @@ function App() {
   function pickRandomWord() {
   let filtered = words;
 
-  if (selectedLevel !== "") {
+  if (selectedLevel !== "" && originalwordlist === false) {
     const levels = selectedLevel === "A1"
       ? ["A1"]
       : selectedLevel === "A2"
@@ -70,11 +71,29 @@ function App() {
 
   const next = remaining[Math.floor(Math.random() * remaining.length)];
   setCurrentWord(next);
-  setTranslation(next.translation || "");
+  if (originalwordlist) {
+    fetchTranslation(next.germanNoun);
+    setTranslation("-"); // show dash until fetch finishes
+  } else {
+    setTranslation(next.translation || "-");
+  }
   setFeedback(null);
   setShowRetry(false);
   setKeyLock(false);
   setShowTranslation(false);
+}
+
+async function fetchTranslation(word) {
+  try {
+    const res = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=de|en`
+    );
+    const data = await res.json();
+    setTranslationOld(data.responseData.translatedText || "-");
+  } catch (err) {
+    console.error(err);
+    setTranslationOld("-");
+  }
 }
 
   function handleChoice(article) {
@@ -84,6 +103,7 @@ function App() {
     if (correct) {
       setFeedback("correct");
       setTranslation("");
+      setTranslationOld("");
       setScore(prev => prev + 5);
       setUsedWords(prev => [...prev, currentWord.germanNoun]);
       setKeyLock(true);
@@ -108,7 +128,7 @@ function App() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (keyLock || feedback=="wrong") {
-        if (e.key.toLowerCase() === "enter") {
+        if (e.key.toLowerCase() === "enter" || e.key.toLowerCase() === " ") {
           handleRetry();
         } else {
           return;
@@ -146,7 +166,23 @@ function App() {
               <li>Left keys (q, w, e, a, s, d, z, x, c): <b>Der</b></li>
               <li>Middle keys (r, t, y, u, f, g, h, v, b, n): <b>Die</b></li>
               <li>Right keys (u, i, o, p, j, k, l, m, etc.): <b>Das</b></li>
+              <br />
+              <li>Restart after losing (SPACE or ENTER)</li>
             </ul>
+            <p>Wordlists by <a href="https://vocabeo.com/">Vocabeo</a> and <a href="https://github.com/Hanttone/der-die-das-game/blob/master/data/german_nouns_output.json">Hantonne@github</a></p>
+
+            <p>Made to solve a real world frustration by Sanuka W.</p>
+            <div className="impossible-toggle">
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={originalwordlist}
+                  onChange={e => setOriginalwordlist(e.target.checked)}
+                />
+                <span className="slider"></span>
+              </label>
+              <span className="toggle-label">Impossible mode</span>
+            </div>
             <button onClick={() => setShowRules(false)}>Close</button>
           </div>
         </div>
@@ -156,7 +192,7 @@ function App() {
       <select
         className="level-select"
         value={selectedLevel}
-        onChange={e => setSelectedLevel(e.target.value)}
+        onChange={e => ( setSelectedLevel(e.target.value), setScore(0) )}
       >
         <option value=">B1">&gt;B1</option>
         <option value="B1">B1</option>
@@ -173,7 +209,7 @@ function App() {
           </h1>
           <div id="translation-container" onClick={() => setShowTranslation(true)}>
             <h3 className="translation">
-              {showTranslation ? translation : "?"}
+              {showTranslation ? (originalwordlist ? translationold : translation) : "?"}
             </h3>
           </div>
           <div className="buttons">
