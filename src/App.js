@@ -1,244 +1,350 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-// Helper function: splits long words
-function splitLongWord(word) {
-  if (word.length <= 21) return word;
-  const wordlength = word.length;
-  const firstPart = word.slice(0, wordlength/2);
-  const secondPart = "-" + word.slice(wordlength/2);
-  return (
-    <>
-      {firstPart}
-      <br />
-      {secondPart}
-    </>
-  );
-}
-
 function App() {
   const [words, setWords] = useState([]);
   const [usedWords, setUsedWords] = useState([]);
   const [currentWord, setCurrentWord] = useState(null);
   const [score, setScore] = useState(0);
-  const [translation, setTranslation] = useState("");
-  const [translationold, setTranslationOld] = useState("");
+  const [translation, setTranslation] = useState("-");
   const [showTranslation, setShowTranslation] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [showRetry, setShowRetry] = useState(false);
   const [keyLock, setKeyLock] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A1");
-  const [originalwordlist, setOriginalwordlist] = useState(false);
+  const [hasTranslationField, setHasTranslationField] = useState(false);
+  const [hasLevelField, setHasLevelField] = useState(false);
+  const [currentlang, setCurrentlang] = useState("de");
+  const [impossibleMode, setImpossibleMode] = useState(false);
+  const [impossibleAvailable, setImpossibleAvailable] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [remaining, setRemaining] = useState(true);
+
+  const principlearray = [
+    {
+      lang: "de",
+      label: "Deutsch",
+      genders: ["M", "F", "N"],
+      articles: ["Der", "Die", "Das"],
+      levels: ["A1", "A2", "B1", ">B1"],
+      malekeys: ["q", "w", "e", "a", "s", "d", "z", "x"],
+      femalekeys: ["r", "t", "y", "u", "f", "g", "h", "v", "b", "n"],
+      neuterkeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
+    },
+    {
+      lang: "fr",
+      label: "Française",
+      genders: ["M", "F"],
+      articles: ["Le", "La"],
+      levels: ["A1", "A2", "B1", ">B1"],
+      malekeys: ["q", "w", "e", "a", "s", "d", "z", "x", "y", "h", "n"],
+      femalekeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
+    }
+  ];
+
+  const currentPrinciple = principlearray.find(p => p.lang === currentlang);
+
+  const [availableLanguages, setAvailableLanguages] = useState([]);
 
   useEffect(() => {
-    if (originalwordlist) {
-      fetch("/german_nouns_output.json")
-      .then(res => res.json())
-      .then(setWords);
-    } else {
-    fetch("/words.json")
-      .then(res => res.json())
-      .then(setWords);
+    async function checkLanguages() {
+      const langs = await Promise.all(
+        principlearray.map(async (p) => {
+          const simpleFile = `/${p.lang.charAt(0).toUpperCase() + p.lang.slice(1)}_simple.json`;
+          try {
+            const res = await fetch(simpleFile, { method: "HEAD" });
+            return res.ok ? p.lang : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+      setAvailableLanguages(langs.filter(Boolean));
     }
-  }, [originalwordlist]);
+    checkLanguages();
+  }, []);
+
+  useEffect(() => {
+    async function checkImpossible() {
+      const impossibleFile = `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`;
+      try {
+        const res = await fetch(impossibleFile, { method: "HEAD", cache: "no-store" });
+        const contentType = res.headers.get("Content-Type") || "";
+        const isRealFile = res.ok && !contentType.includes("text/html");
+        setImpossibleAvailable(isRealFile);
+        if (!isRealFile) setImpossibleMode(false);
+      } catch {
+        setImpossibleAvailable(false);
+        setImpossibleMode(false);
+      }
+    }
+    checkImpossible();
+  }, [currentlang]);
+
+  useEffect(() => {
+    async function loadWords() {
+      const file = impossibleMode
+        ? `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`
+        : `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_simple.json`;
+      try {
+        const res = await fetch(file);
+        const data = await res.json();
+        setWords(data);
+        if (data.length > 0) {
+          setHasTranslationField("translation" in data[0]);
+          setHasLevelField("level" in data[0]);
+        } else {
+          setHasTranslationField(false);
+          setHasLevelField(false);
+        }
+      } catch {
+        // Impossible and/or Language wordlist not found
+        setWords([]);
+        setHasTranslationField(false);
+        setHasLevelField(false);
+      }
+    }
+    loadWords();
+  }, [currentlang, impossibleMode]);
 
   useEffect(() => {
     if (words.length > 0) pickRandomWord();
   }, [words]);
 
   function pickRandomWord() {
-  let filtered = words;
-
-  if (selectedLevel !== "" && originalwordlist === false) {
-    const levels = selectedLevel === "A1"
-      ? ["A1"]
-      : selectedLevel === "A2"
-      ? ["A1", "A2"]
-      : selectedLevel === "B1"
-      ? ["A1", "A2", "B1"]
-      : ["A1", "A2", "B1", ""];
-
-    filtered = words.filter(w => levels.includes(w.level));
-  }
-
-  const remaining = filtered.filter(w => !usedWords.includes(w.germanNoun));
-
-  if (remaining.length === 0) {
-    setUsedWords([]);
-    return pickRandomWord();
-  }
-
-  const next = remaining[Math.floor(Math.random() * remaining.length)];
-  setCurrentWord(next);
-  if (originalwordlist) {
-    fetchTranslation(next.germanNoun);
-    setTranslation("-"); // show dash until fetch finishes
-  } else {
-    setTranslation(next.translation || "-");
-  }
-  setFeedback(null);
-  setShowRetry(false);
-  setKeyLock(false);
-  setShowTranslation(false);
-}
-
-async function fetchTranslation(word) {
-  try {
-    const res = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=de|en`
-    );
-    const data = await res.json();
-    setTranslationOld(data.responseData.translatedText || "-");
-  } catch (err) {
-    console.error(err);
-    setTranslationOld("-");
-  }
-}
-
-  function handleChoice(article) {
-    if (!currentWord || keyLock) return;
-
-    const correct = article === currentWord.gender;
-    if (correct) {
-      setFeedback("correct");
-      setTranslation("");
-      setTranslationOld("");
-      setScore(prev => prev + 5);
-      setUsedWords(prev => [...prev, currentWord.germanNoun]);
-      setKeyLock(true);
-      setTimeout(() => {
-        pickRandomWord();
-      }, 500);
-    } else {
-      setFeedback("wrong");
-      setShowRetry(true);
-      setKeyLock(false);
+    let filtered = words;
+    if (selectedLevel !== "" && hasLevelField) {
+      const levels = selectedLevel === "A1"
+        ? ["A1"]
+        : selectedLevel === "A2"
+        ? ["A1", "A2"]
+        : selectedLevel === "B1"
+        ? ["A1", "A2", "B1"]
+        : ["A1", "A2", "B1", ""];
+      filtered = words.filter(w => levels.includes(w.level));
     }
 
+    const remaining = filtered.filter(w => !usedWords.includes(w.Noun));
+    if (remaining.length === 0) {
+      setUsedWords([]);
+      setGameOver(true);
+      setShowRetry(true);
+      setRemaining(false);
+      return;
+    }
+
+    const next = remaining[Math.floor(Math.random() * remaining.length)];
+    setCurrentWord(next);
+
+    if (hasTranslationField) {
+      setTranslation(next.translation || "-");
+    } else {
+      fetchTranslation(next.Noun);
+      setTranslation("-");
+    }
+
+    setFeedback(null);
+    setShowRetry(false);
+    setKeyLock(false);
+    setShowTranslation(false);
+  }
+
+  async function fetchTranslation(word) {
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${currentlang}|en`
+      );
+      const data = await res.json();
+      setTranslation(data.responseData.translatedText || "-");
+    } catch (err) {
+      console.error(err);
+      setTranslation("-");
+    }
+  }
+
+  function handleChoice(gender) {
+    if (!currentWord || keyLock) return;
+    const correct = gender === currentWord.gender;
+    if (correct && (remaining === true)) {
+      setFeedback("correct");
+      setScore(prev => prev + 5);
+      setUsedWords(prev => [...prev, currentWord.Noun]);
+      setTimeout(() => pickRandomWord(), 500);
+    } else {
+      if (remaining === false) {
+        setGameOver(true);
+        setShowRetry(true);
+        return;
+      }
+      setFeedback("wrong");
+      setShowRetry(true);
+    }
     setKeyLock(true);
-    setTimeout(() => setKeyLock(false), 100);
+    setTimeout(() => setKeyLock(false), 500);
   }
 
   function handleRetry() {
     setScore(0);
     pickRandomWord();
+    setGameOver(false);
+    setUsedWords([]);
+    setRemaining(true);
   }
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (keyLock || feedback=="wrong") {
-        if (e.key.toLowerCase() === "enter" || e.key.toLowerCase() === " ") {
-          handleRetry();
-        } else {
-          return;
-        }
-      };
+      if (keyLock || feedback === "wrong") {
+        if (e.key.toLowerCase() === "enter" || e.key === " ") handleRetry();
+        return;
+      }
       const key = e.key.toLowerCase();
-
       if (showRetry && key === "enter") {
         handleRetry();
         return;
       }
-
-      if (["q", "w", "e", "a", "s", "d", "z", "x"].includes(key)) {
-        handleChoice("der");
-      } else if (["r", "t", "y", "u", "f", "g", "h", "v", "b", "n"].includes(key)) {
-        handleChoice("die");
-      } else if (["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"].includes(key)) {
-        handleChoice("das");
-      }
+      if (currentPrinciple.malekeys.includes(key)) handleChoice("M");
+      else if (currentPrinciple.femalekeys.includes(key)) handleChoice("F");
+      else if (currentPrinciple.neuterkeys && currentPrinciple.neuterkeys.includes(key)) handleChoice("N");
     }
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentWord, showRetry, keyLock]);
+  }, [currentWord, showRetry, keyLock, currentPrinciple]);
 
   return (
     <div className="container">
       {showRules && (
-        <div className="rules-overlay" onClick={() => setShowRules(false)}>
-          <div className="rules-box" onClick={e => e.stopPropagation()}>
+        <div className="instructions-overlay" onClick={() => setShowRules(false)}>
+          <div className="instructions-box" onClick={e => e.stopPropagation()}>
             <h2>How to Play</h2>
-            <p>Guess the gender (Der, Die, Das) of the shown German noun.</p>
-            <p>You can click the buttons or use the keyboard:</p>
+            <p>Guess the gender of the shown noun.</p>
             <ul>
-              <li>Left keys (q, w, e, a, s, d, z, x, c): <b>Der</b></li>
-              <li>Middle keys (r, t, y, u, f, g, h, v, b, n): <b>Die</b></li>
-              <li>Right keys (u, i, o, p, j, k, l, m, etc.): <b>Das</b></li>
-              <br />
-              <li>Restart after losing (SPACE or ENTER)</li>
-            </ul>
-            <p>Wordlists by <a href="https://vocabeo.com/">Vocabeo</a> and <a href="https://github.com/Hanttone/der-die-das-game/blob/master/data/german_nouns_output.json">Hantonne@github</a></p>
+              {currentPrinciple?.malekeys && (
+                <li>Left keys: <b>{currentPrinciple.articles[0]}</b></li>
+              )}
+              {currentPrinciple?.femalekeys && currentPrinciple.articles.length === 3 && (
+                <li>Middle keys: <b>{currentPrinciple.articles[1]}</b></li>
+              )}
+              {currentPrinciple?.neuterkeys && currentPrinciple.articles.length === 3 && (
+                <li>Right keys: <b>{currentPrinciple.articles[2]}</b></li>
+              )}
 
-            <p>Made to solve a real world frustration by Sanuka W.</p>
-            <div className="impossible-toggle">
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={originalwordlist}
-                  onChange={e => setOriginalwordlist(e.target.checked)}
-                />
-                <span className="slider"></span>
-              </label>
-              <span className="toggle-label">Impossible mode</span>
-            </div>
+              {/* fallback for 2-gender languages */}
+              {currentPrinciple?.articles.length === 2 && (
+                <li>Right keys: <b>{currentPrinciple.articles[1]}</b></li>
+              )}
+              <li>Restart: SPACE or ENTER</li>
+            </ul>
+
+            {impossibleAvailable && (
+              <div className="impossible-toggle">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={impossibleMode}
+                    onChange={e => setImpossibleMode(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+                <span className="toggle-label">Impossible mode</span>
+              </div>
+            )}
+
             <button onClick={() => setShowRules(false)}>Close</button>
           </div>
         </div>
       )}
+
       <div className="top-bar">
-      <div className="help-button" onClick={() => setShowRules(true)}>?</div>
-      <select
-        className="level-select"
-        value={selectedLevel}
-        onChange={e => ( setSelectedLevel(e.target.value), setScore(0) )}
-      >
-        <option value=">B1">&gt;B1</option>
-        <option value="B1">B1</option>
-        <option value="A2">A2</option>
-        <option value="A1">A1</option>
-      </select>
-    </div>
-      <h1 className="title">German Gender Game</h1>
-      <h2 className="score">Score: {score}</h2>
+        <div className="help-button" onClick={() => setShowRules(true)}>?</div>
+        {/* Level selector */}
+        {hasLevelField && (
+          <select
+            className="level-select"
+            value={selectedLevel}
+            onChange={e => {
+              setSelectedLevel(e.target.value);
+              setScore(0);
+            }}
+          >
+            {currentPrinciple.levels.map(level => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Language selector - only show availableLanguages */}
+        <select
+          className="level-select"
+          id="lang-select"
+          value={currentlang}
+          onChange={e => {
+            setCurrentlang(e.target.value);
+            setImpossibleMode(false);
+            handleRetry();
+          }}
+        >
+          {principlearray
+            .filter(p => availableLanguages.includes(p.lang))
+            .map(p => (
+              <option key={p.lang} value={p.lang}>
+                {p.label}
+              </option>
+            ))}
+        </select>
+      </div>
+      <h1 className="title">Grammatical Gender Game</h1>
       {currentWord && (
         <>
-          <h1 className={`word ${feedback}`}>
-            {splitLongWord(currentWord.germanNoun)}
-          </h1>
-          <div id="translation-container" onClick={() => setShowTranslation(true)}>
-            <h3 className="translation">
-              {showTranslation ? (originalwordlist ? translationold : translation) : "?"}
-            </h3>
-          </div>
-          <div className="buttons">
-            {["der", "die", "das"].map(article => (
-              <button
-                key={article}
-                className={`btn ${
-                  feedback && currentWord.gender === article
+          {!gameOver ? (
+            <>
+              <h2 className="score">Score: {score}</h2>
+              <h1 className={`word ${feedback}`}>{splitLongWord(currentWord.Noun)}</h1>  
+            </>
+          ) : (
+            <>
+              < br/>< br/><br />
+              <h1 className="game-over">Game Over! Final Score: {score}</h1>
+              < br/>< br/><br />
+            </>
+          )
+          }
+          {!gameOver && (
+            <>
+              <div id="translation-container" onClick={() => setShowTranslation(true)}>
+              <h3 className="translation">{showTranslation ? translation : "?"}</h3>
+            </div>
+            <div className="buttons">
+              {currentPrinciple.genders.map((gender, i) => (
+                <button
+                  key={gender}
+                  className={`btn ${feedback && currentWord.gender === gender
                     ? "correct"
-                    : feedback === "wrong" && article !== currentWord.gender
+                    : feedback === "wrong" && currentWord.gender !== gender
                     ? "wrong"
-                    : ""
-                }`}
-                onClick={() => handleChoice(article)}
-                disabled={showRetry}
-              >
-                {article.charAt(0).toUpperCase() + article.slice(1)}
-              </button>
-            ))}
-          </div>
-          {showRetry && (
-            <button className="retry-btn" onClick={handleRetry}>
-              Restart
-            </button>
+                    : ""}`}
+                  onClick={() => handleChoice(gender)}
+                  disabled={showRetry}
+                >
+                  {currentPrinciple.articles[i]}
+                </button>
+              ))}
+            </div>
+            </>
           )}
+          {showRetry && <button className="retry-btn" onClick={handleRetry}>Restart</button>}
         </>
       )}
     </div>
   );
+}
+
+function splitLongWord(word) {
+  if (word.length <= 21) return word;
+  const mid = Math.floor(word.length / 2);
+  return <>{word.slice(0, mid)}<br />-{word.slice(mid)}</>;
 }
 
 export default App;

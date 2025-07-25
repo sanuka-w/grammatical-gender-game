@@ -145,7 +145,7 @@ body {
   background: #555;
 }
 
-.rules-overlay {
+.instructions-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -159,7 +159,7 @@ body {
   z-index: 20;
 }
 
-.rules-box {
+.instructions-box {
   background: #222;
   color: #fff;
   padding: 2rem;
@@ -169,15 +169,15 @@ body {
   text-align: left;
 }
 
-.rules-box h2 {
+.instructions-box h2 {
   margin-top: 0;
 }
 
-.rules-box ul {
+.instructions-box ul {
   padding-left: 1.2rem;
 }
 
-.rules-box button {
+.instructions-box button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
   background: #444;
@@ -187,7 +187,7 @@ body {
   cursor: pointer;
 }
 
-.rules-box button:hover {
+.instructions-box button:hover {
   background: #666;
 }
 
@@ -211,14 +211,17 @@ body {
   color: #fff;
 }
 
+#lang-select {
+  position: absolute;
+  top: 10px;
+  right: 110px !important;
+}
+
 .impossible-toggle {
   display: flex;
   align-items: center;
   gap: 0.3rem;
   font-size: 0.9rem;
-  /* position: absolute;
-  top: 10px;
-  left: 10px; */
 }
 a:link {
   color: red;
@@ -326,7 +329,12 @@ a:visited {
     padding: 0.2rem 0.4rem;
   }
 
-  .rules-box {
+  #lang-select {
+    top: 15px;
+    right: 100px !important;
+  }
+
+  .instructions-box {
     width: 90%;
     padding: 1rem;
   }
