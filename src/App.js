@@ -37,7 +37,7 @@ function App() {
       label: "Française",
       genders: ["M", "F"],
       articles: ["Le", "La"],
-      levels: ["A1", "A2", "B1", ">B1"],
+      levels: ["A1", "A2", "B1", "B2", "C1", "C2"],
       malekeys: ["q", "w", "e", "a", "s", "d", "z", "x", "y", "h", "n"],
       femalekeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
     }
@@ -99,7 +99,6 @@ function App() {
           setHasLevelField(false);
         }
       } catch {
-        // Impossible and/or Language wordlist not found
         setWords([]);
         setHasTranslationField(false);
         setHasLevelField(false);
@@ -121,7 +120,11 @@ function App() {
         ? ["A1", "A2"]
         : selectedLevel === "B1"
         ? ["A1", "A2", "B1"]
-        : ["A1", "A2", "B1", ""];
+        : selectedLevel === "B2"
+        ? ["A1", "A2", "B1", "B2"]
+        : selectedLevel === "C1"
+        ? ["A1", "A2", "B1", "B2", "C1"]
+        : ["A1", "A2", "B1", "B2", "C1", "C2", ""]
       filtered = words.filter(w => levels.includes(w.level));
     }
 
