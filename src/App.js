@@ -33,6 +33,16 @@ function App() {
       neuterkeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
     },
     {
+      lang: "el",
+      label: "Ελληνικά",
+      genders: ["M", "F", "N"],
+      articles: ["ὁ/οἱ", "ἡ/αἱ", "τό/τά"],
+      levels: ["A1", "A2", "B1", "B2", "C1", "C2"],
+      malekeys: ["q", "w", "e", "a", "s", "d", "z", "x"],
+      femalekeys: ["r", "t", "y", "u", "f", "g", "h", "v", "b", "n"],
+      neuterkeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
+    },
+    {
       lang: "fr",
       label: "Française",
       genders: ["M", "F"],
