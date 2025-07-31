@@ -13,7 +13,6 @@ function App() {
   const [keyLock, setKeyLock] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A1");
-  const [hasTranslationField, setHasTranslationField] = useState(false);
   const [hasLevelField, setHasLevelField] = useState(false);
   const [currentlang, setCurrentlang] = useState("de");
   const [impossibleMode, setImpossibleMode] = useState(false);
@@ -50,6 +49,16 @@ function App() {
       levels: ["A1", "A2", "B1", "B2", "C1", "C2"],
       malekeys: ["q", "w", "e", "a", "s", "d", "z", "x", "y", "h", "n"],
       femalekeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
+    },
+    {
+      lang: "ru",
+      label: "Русский",
+      genders: ["M", "F", "N"],
+      articles: ["мужской", "женский", "средний"],
+      levels: ["A1", "A2", "B1", "B2", ">B2"],
+      malekeys: ["q", "w", "e", "a", "s", "d", "z", "x"],
+      femalekeys: ["r", "t", "y", "u", "f", "g", "h", "v", "b", "n"],
+      neuterkeys: ["u", "i", "o", "p", "[", "]", "j", "k", "l", ";", "'", ",", ".", "m"]
     }
   ];
 
@@ -101,16 +110,13 @@ function App() {
         const res = await fetch(file);
         const data = await res.json();
         setWords(data);
-        if (data.length > 0) {
-          setHasTranslationField("translation" in data[0]);
-          setHasLevelField("level" in data[0]);
+        if (data.length > 0 && "level" in data[0]) {
+          setHasLevelField(true);
         } else {
-          setHasTranslationField(false);
           setHasLevelField(false);
         }
       } catch {
         setWords([]);
-        setHasTranslationField(false);
         setHasLevelField(false);
       }
     }
@@ -123,6 +129,7 @@ function App() {
 
   function pickRandomWord() {
     let filtered = words;
+
     if (selectedLevel !== "" && hasLevelField) {
       const levels = selectedLevel === "A1"
         ? ["A1"]
@@ -134,12 +141,13 @@ function App() {
         ? ["A1", "A2", "B1", "B2"]
         : selectedLevel === "C1"
         ? ["A1", "A2", "B1", "B2", "C1"]
-        : ["A1", "A2", "B1", "B2", "C1", "C2", ""]
+        : ["A1", "A2", "B1", "B2", "C1", "C2", ""];
       filtered = words.filter(w => levels.includes(w.level));
     }
 
-    const remaining = filtered.filter(w => !usedWords.includes(w.Noun));
-    if (remaining.length === 0) {
+    const remainingWords = filtered.filter(w => !usedWords.includes(w.Noun));
+
+    if (remainingWords.length === 0) {
       setUsedWords([]);
       setGameOver(true);
       setShowRetry(true);
@@ -147,14 +155,14 @@ function App() {
       return;
     }
 
-    const next = remaining[Math.floor(Math.random() * remaining.length)];
-    setCurrentWord(next);
+    const next = remainingWords[Math.floor(Math.random() * remainingWords.length)];
 
-    if (hasTranslationField) {
-      setTranslation(next.translation || "-");
-    } else {
+    setCurrentWord(next);
+    if (!next.translation) {
       fetchTranslation(next.Noun);
-      setTranslation("-");
+      // setTranslation("-");
+    } else {
+      setTranslation(next.translation);
     }
 
     setFeedback(null);
@@ -169,9 +177,25 @@ function App() {
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${currentlang}|en`
       );
       const data = await res.json();
-      setTranslation(data.responseData.translatedText || "-");
+
+      let translation = data.responseData?.translatedText || "-";
+
+      // If translation just repeats the original word (case insensitive, even partial)
+      if (
+        translation.toLowerCase().includes(word.toLowerCase())
+      ) {
+        // Try to find a better match in data.matches
+        const betterMatch = data.matches?.find(
+          m => !m.translation.toLowerCase().includes(word.toLowerCase())
+        );
+        if (betterMatch) {
+          translation = betterMatch.translation;
+        }
+      }
+
+      setTranslation(translation);
     } catch (err) {
-      console.error(err);
+      console.log("No translation found, please research")
       setTranslation("-");
     }
   }
@@ -183,6 +207,7 @@ function App() {
       setFeedback("correct");
       setScore(prev => prev + 5);
       setUsedWords(prev => [...prev, currentWord.Noun]);
+      setTranslation("-")
       setTimeout(() => pickRandomWord(), 500);
     } else {
       if (remaining === false) {
@@ -296,6 +321,7 @@ function App() {
           onChange={e => {
             setCurrentlang(e.target.value);
             setImpossibleMode(false);
+            setSelectedLevel("A1");
             handleRetry();
           }}
         >
@@ -355,6 +381,7 @@ function App() {
 }
 
 function splitLongWord(word) {
+  if (!word || typeof word !== 'string') return '';
   if (word.length <= 21) return word;
   const mid = Math.floor(word.length / 2);
   return <>{word.slice(0, mid)}<br />-{word.slice(mid)}</>;
