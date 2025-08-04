@@ -29,6 +29,7 @@ npm run dev
 - Build for production:
 ```bash
 npm run build
+```
 
 ## 📄 Data Format
 Wordlists are stored as items in an array:
