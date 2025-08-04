@@ -2,7 +2,7 @@
 [GitHub](https://github.com/sanuka-w/grammatical-gender-game)
 
 An open source web app to help language learners practice grammatical genders interactively.
-Supports multiple languages including *
+Supports multiple languages including 
 **German**, **French**, **Greek**, and **Russian**.
 
 ## ✨ Features
@@ -32,7 +32,7 @@ npm run build
 
 ## 📄 Data Format
 Wordlists are stored as items in an array:
-```JSON
+```
 [{
 "Noun": "Hund",
 "gender": "M",
@@ -41,14 +41,14 @@ Wordlists are stored as items in an array:
 },
 ...
 ]
-``
+```
 
 ## 📝 Motivation
 Created because no freely available product offered an open, customizable way to practice grammatical genders interactively across multiple languages.
 
 ## 🙏 Special Thanks
-**FreeDict.org** for high-quality dictionary data.
-**MyMemory API** for translation lookups
+FreeDict.org for high-quality dictionary data.
+MyMemory API for translation lookups.
 
 ## 👤Author
 Made by **Sanuka Weerabaddana** to solve a language learning problem.
