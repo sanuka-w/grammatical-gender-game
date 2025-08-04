@@ -32,14 +32,13 @@ npm run build
 
 ## 📄 Data Format
 Wordlists are stored as items in an array:
-```
+```JSON
 [{
 "Noun": "Hund",
 "gender": "M",
 "translation": "Dog",
 "level": "A1"
-},
-...
+}
 ]
 ```
 
