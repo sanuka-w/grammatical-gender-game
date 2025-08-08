@@ -118,6 +118,45 @@ body {
   color: #0b0b0f;
 }
 
+.mode-select {
+  position: absolute;
+  top: 10px;
+  right: 200px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-family: 'Orbitron', sans-serif;
+  user-select: none;
+}
+
+.mode-select input[type="radio"] {
+  display: none;
+}
+
+.mode-select label {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #ffcc00;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.mode-select label:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: #888;
+}
+
+.mode-select input[type="radio"]:checked + label {
+  border: 1px solid #ffcc00;
+  box-shadow: 0 0 5px #ffcc00aa;
+  background-color: #1a1a1a;
+  color: #ffcc00;
+}
+
 .retry-btn:hover {
   background: #860c0c; /* darker gold */
 }
@@ -343,6 +382,44 @@ a:visited {
 @media (max-width: 480px) {
   .word {
     font-size: 2.2rem;
+  }
+
+  .mode-select {
+  position: relative;
+  top: 0px;
+  right: 0px;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-family: 'Orbitron', sans-serif;
+  user-select: none;
+}
+
+  .mode-select input[type="radio"] {
+    display: none;
+  }
+
+  .mode-select label {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    color: #ffcc00;
+    cursor: pointer;
+    background-color: transparent;
+    transition: all 0.3s ease;
+  }
+
+  .mode-select label:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: #888;
+  }
+
+  .mode-select input[type="radio"]:checked + label {
+    border: 1px solid #ffcc00;
+    box-shadow: 0 0 5px #ffcc00aa;
+    background-color: #1a1a1a;
+    color: #ffcc00;
   }
 
   .title {

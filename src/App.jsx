@@ -18,7 +18,11 @@ function App() {
   const [impossibleMode, setImpossibleMode] = useState(false);
   const [impossibleAvailable, setImpossibleAvailable] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [remaining, setRemaining] = useState(true);
+  const [gameMode, setGameMode] = useState("survival");
+  const timeLimit = 60;
+  const [timeLeft, setTimeLeft] = useState(timeLimit);
+  const [lives, setLives] = useState(3);
+
 
   const principlearray = [
     {
@@ -155,7 +159,6 @@ function App() {
       setUsedWords([]);
       setGameOver(true);
       setShowRetry(true);
-      setRemaining(false);
       return;
     }
 
@@ -164,13 +167,11 @@ function App() {
     setCurrentWord(next);
     if (!next.translation) {
       fetchTranslation(next.Noun);
-      // setTranslation("-");
     } else {
       setTranslation(next.translation);
     }
 
     setFeedback(null);
-    setShowRetry(false);
     setKeyLock(false);
     setShowTranslation(false);
   }
@@ -205,49 +206,123 @@ function App() {
   }
 
   function handleChoice(gender) {
-    if (!currentWord || keyLock) return;
-    const correct = gender === currentWord.gender;
-    if (correct && (remaining === true)) {
+  if (!currentWord || keyLock || gameOver) return;
+  const correct = gender === currentWord.gender;
+
+  if (gameMode === "survival") {
+    if (correct) {
       setFeedback("correct");
       setScore(prev => prev + 5);
       setUsedWords(prev => [...prev, currentWord.Noun]);
-      setTranslation("-")
-      setTimeout(() => pickRandomWord(), 500);
+      setTranslation("-");
+      setKeyLock(true);
+      setTimeout(() => {
+        pickRandomWord();
+      }, 500);
     } else {
-      if (remaining === false) {
-        setGameOver(true);
-        setShowRetry(true);
-        return;
-      }
       setFeedback("wrong");
+      setLives(prevLives => {
+        const newLives = prevLives - 1;
+        if (newLives == 0) {
+          setGameOver(true);
+          setShowRetry(true);
+        } else {
+          setUsedWords(prev => [...prev, currentWord.Noun]);
+          setTranslation("-");
+          setKeyLock(true);
+          setTimeout(() => {
+            pickRandomWord();
+          }, 1500);
+        }
+        return newLives;
+      });
+      setTimeout(() => {
+        if (gameOver) return;
+      }, 1500);
+    }
+  } else if (gameMode === "timed") {
+    if (correct) {
+      setFeedback("correct");
+      setScore(prev => prev + 5);
+      setUsedWords(prev => [...prev, currentWord.Noun]);
+      setTranslation("-");
+      setKeyLock(true);
+      setTimeout(() => {
+        pickRandomWord();
+      }, 500);
+    } else {
+      setFeedback("wrong");
+      setUsedWords(prev => [...prev, currentWord.Noun]);
+      setTranslation("-");
+      setKeyLock(true);
+      setTimeout(() => {
+        if (gameOver){
+          setShowRetry(true)
+        }else{
+          pickRandomWord();
+        }
+      }, 1500);
+    }
+  }
+}
+
+  useEffect(() => {
+    if (gameMode !== "timed" || gameOver) return;
+
+    if (timeLeft <= 0) {
+      setGameOver(true);
       setShowRetry(true);
     }
-    setKeyLock(true);
-    setTimeout(() => setKeyLock(false), 500);
-  }
+
+    const timerId = setTimeout(() => {
+      if (gameOver) {
+        setTimeLeft(0);
+      } else {
+        setTimeLeft(timeLeft - 1)
+      }
+    }, 1000);
+
+    return () => clearTimeout(timerId);
+  }, [timeLeft, gameMode, gameOver]);
+
 
   function handleRetry() {
     setScore(0);
-    pickRandomWord();
-    setGameOver(false);
     setUsedWords([]);
-    setRemaining(true);
+    setGameOver(false);
+    setShowRetry(false);
+    setFeedback(null);
+    setKeyLock(false);
+
+    if (gameMode === "timed") {
+      setTimeLeft(timeLimit);
+    } else {
+      setLives(3);
+    }
+    pickRandomWord();
   }
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (keyLock || feedback === "wrong") {
-        if (e.key.toLowerCase() === "enter" || e.key === " ") handleRetry();
-        return;
-      }
       const key = e.key.toLowerCase();
-      if (showRetry && key === "enter") {
-        handleRetry();
+
+      if (!keyLock) {
+        if (showRetry && key === "enter") {
+          handleRetry();
+        } else  if (key === " " && showRetry) {
+          handleRetry();
+        } else if (currentPrinciple.malekeys.includes(key)) {
+           handleChoice("M")
+        } else if (currentPrinciple.femalekeys.includes(key)) {
+           handleChoice("F")
+        } else if (currentPrinciple.neuterkeys.includes(key)) {
+           handleChoice("N");
+        } else {
+          return;
+        }
+      } else {
         return;
       }
-      if (currentPrinciple.malekeys.includes(key)) handleChoice("M");
-      else if (currentPrinciple.femalekeys.includes(key)) handleChoice("F");
-      else if (currentPrinciple.neuterkeys && currentPrinciple.neuterkeys.includes(key)) handleChoice("N");
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -319,8 +394,44 @@ function App() {
             ))}
           </select>
         )}
-
-        {/* Language selector - only show availableLanguages */}
+        <div className="mode-select">
+          <input
+              type="radio"
+              name="gameMode"
+              value="survival"
+              id="survival"
+              checked={gameMode === "survival"}
+              onChange={() => {
+                setGameMode("survival");
+                setGameOver(false);
+                setShowRetry(false);
+                setLives(3);
+                setTimeLeft(timeLimit);
+                pickRandomWord();
+              }}
+            />
+          <label htmlFor="survival">
+            Survival Mode (3 lives)
+          </label>
+          <input
+            type="radio"
+            name="gameMode"
+            value="timed"
+            id="timedmode"
+            checked={gameMode === "timed"}
+            onChange={() => {
+              setGameMode("timed");
+              setGameOver(false);
+              setShowRetry(false);
+              setTimeLeft(timeLimit);
+              pickRandomWord();
+              setScore(0);
+            }}
+          />
+          <label htmlFor="timedmode">
+            Timed Mode ({timeLimit} seconds)
+          </label>
+        </div>
         <select
           className="level-select"
           id="lang-select"
@@ -346,13 +457,42 @@ function App() {
         <>
           {!gameOver ? (
             <>
-              <h2 className="score">Score: {score}</h2>
-              <h1 className={`word ${feedback}`}>{splitLongWord(currentWord.Noun)}</h1>  
+              {gameMode === "timed" ? (
+                <h2 className="score">
+                  Accuracy: {usedWords.length === 0 ? 0 : Math.round((score / (usedWords.length * 5)) * 100)}%
+                </h2>
+              ) : (
+                <h2 className="score">Score: {score}</h2>
+              )}
+              {gameMode === "survival" && (
+                <div className="hearts">
+                  {[...Array(3)].map((_, i) => (
+                    <span key={i}>
+                      {i < lives ? "❤️" : "🖤"}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {gameMode === "timed" && (
+                <div className="timer">⏱️ Time left: {timeLeft}s</div>
+              )}
+
+              <h1 className={`word ${feedback}`}>{splitLongWord(currentWord.Noun)}</h1>
             </>
           ) : (
             <>
               < br/>< br/><br />
-              <h1 className="game-over">Game Over! Final Score: {score}</h1>
+              {gameMode === "timed" && (
+                <h1 className="game-over">
+                  Game Over!<br></br><br></br>
+                  Accuracy: {usedWords.length === 0 ? 0 : Math.round((score / (usedWords.length * 5)) * 100)}%<br></br>
+                  Number of words: {usedWords.length}
+                 </h1>
+              )}
+              {gameMode === "survival" && (
+                <h1 className="game-over">Game Over! Score: {score}</h1>
+              )}
               < br/>< br/><br />
             </>
           )
