@@ -1,5 +1,5 @@
 # Grammatical Gender Game
-[GitHub](https://github.com/sanuka-w/grammatical-gender-game)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 ### Try it out here : [https://gendergame.pages.dev](https://gendergame.pages.dev)
 
@@ -57,3 +57,6 @@ MyMemory API for translation lookups.
 
 ## 👤Author
 Made by **Sanuka Weerabaddana** to solve a real world language learning problem.
+
+## 📜License
+GNU GPLv3
