@@ -249,13 +249,13 @@ function App() {
           setKeyLock(true);
           setTimeout(() => {
             pickRandomWord();
-          }, 1500);
+          }, 1000);
         }
         return newLives;
       });
       setTimeout(() => {
         if (gameOver) return;
-      }, 1500);
+      }, 1000);
     }
   } else if (gameMode === "timed") {
     if (correct) {
@@ -278,7 +278,7 @@ function App() {
         }else{
           pickRandomWord();
         }
-      }, 1500);
+      }, 1000);
     }
   }
 }
@@ -329,11 +329,14 @@ function App() {
         } else  if (key === " " && showRetry) {
           handleRetry();
         } else if (currentPrinciple.malekeys.includes(key)) {
-           handleChoice("M")
+            handleChoice("M");
+            setSelectedGender("M");
         } else if (currentPrinciple.femalekeys.includes(key)) {
-           handleChoice("F")
+           handleChoice("F");
+           setSelectedGender("F");
         } else if (currentPrinciple.neuterkeys.includes(key)) {
            handleChoice("N");
+           setSelectedGender("N");
         } else {
           return;
         }
@@ -376,7 +379,7 @@ function App() {
                   <input
                     type="checkbox"
                     checked={impossibleMode}
-                    onChange={e => setImpossibleMode(e.target.checked)}
+                    onChange={e => {setImpossibleMode(e.target.checked); handleRetry(); setShowRules(false);}}
                   />
                   <span className="slider"></span>
                 </label>
@@ -402,6 +405,7 @@ function App() {
             onChange={e => {
               setSelectedLevel(e.target.value);
               setScore(0);
+              handleRetry();
             }}
           >
             {currentPrinciple.levels.map(level => (
