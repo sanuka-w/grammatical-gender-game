@@ -94,7 +94,7 @@ function App() {
     async function checkLanguages() {
       const langs = await Promise.all(
         principlearray.map(async (p) => {
-          const simpleFile = `/${p.lang.charAt(0).toUpperCase() + p.lang.slice(1)}_simple.json`;
+          const simpleFile = `${import.meta.env.BASE_URL}${p.lang.charAt(0).toUpperCase() + p.lang.slice(1)}_simple.json`;
           try {
             const res = await fetch(simpleFile, { method: "HEAD" });
             return res.ok ? p.lang : null;
@@ -110,7 +110,7 @@ function App() {
 
   useEffect(() => {
     async function checkImpossible() {
-      const impossibleFile = `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`;
+      const impossibleFile = `${import.meta.env.BASE_URL}${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`;
       try {
         const res = await fetch(impossibleFile, { method: "HEAD", cache: "no-store" });
         const contentType = res.headers.get("Content-Type") || "";
@@ -128,8 +128,8 @@ function App() {
   useEffect(() => {
     async function loadWords() {
       const file = impossibleMode
-        ? `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`
-        : `/${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_simple.json`;
+        ? `${import.meta.env.BASE_URL}${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_impossible.json`
+        : `${import.meta.env.BASE_URL}${currentlang.charAt(0).toUpperCase() + currentlang.slice(1)}_simple.json`;
       try {
         const res = await fetch(file);
         const data = await res.json();
