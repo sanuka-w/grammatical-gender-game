@@ -19,6 +19,7 @@ Supports practicing of multiple languages including
 
 ## 📦 Tech Stack
 - React + Vite
+- NPM
 - Modern JavaScript (ES6+)
 - CSS (dark theme, responsive design)
 
@@ -26,6 +27,10 @@ Supports practicing of multiple languages including
 - Clone the repository:
 ```bash
 git clone https://github.com/sanuka-w/grammatical-gender-game.git
+```
+- Enter the repository root directory:
+```bash
+cd grammatical-gender-game
 ```
 - Install dependencies:
 ```bash
