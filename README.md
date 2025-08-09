@@ -1,5 +1,6 @@
 # Grammatical Gender Game
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/-GitHub-black?logo=github)](https://github.com/sanuka-w/grammatical-gender-game)
 
 ### Try it out here : [https://gendergame.pages.dev](https://gendergame.pages.dev)
 
@@ -22,7 +23,11 @@ Supports practicing of multiple languages including
 - CSS (dark theme, responsive design)
 
 ## ⚙ Installation & Running
-- Clone the repository and install dependencies:
+- Clone the repository:
+```bash
+git clone https://github.com/sanuka-w/grammatical-gender-game.git
+```
+- Install dependencies:
 ```bash
 npm install
 ```
@@ -55,8 +60,8 @@ I created this web app because no available product offered an easy, customizabl
 FreeDict.org for high-quality dictionary data.
 MyMemory API for translation lookups.
 
-## 👤Author
+## 👤 Author
 Made by **Sanuka Weerabaddana** to solve a real world language learning problem.
 
-## 📜License
+## 📜 License
 GNU GPLv3
