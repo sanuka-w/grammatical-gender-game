@@ -1,4 +1,4 @@
- /* Grammatical Gender Game - An open source web app to help language learners practice grammatical genders interactively.
+ /* Grammatical Gender Game - A web app to help language learners practice grammatical genders interactively.
  Copyright (C) 2025  Sanuka Weerabaddana 
 
  This program is free software: you can redistribute it and/or modify

@@ -3,7 +3,7 @@
 
 ### Try it out here : [https://gendergame.pages.dev](https://gendergame.pages.dev)
 
-An open source web app to help language learners practice grammatical genders interactively.
+A web app to help language learners practice grammatical genders interactively.
 Responsive for most mobile devices.
 Supports practicing of multiple languages including 
 **German**, **French**, **Greek**, and **Russian**.
