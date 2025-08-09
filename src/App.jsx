@@ -22,6 +22,7 @@ function App() {
   const [usedWords, setUsedWords] = useState([]);
   const [currentWord, setCurrentWord] = useState(null);
   const [score, setScore] = useState(0);
+  const [selectedGender, setSelectedGender] = useState(null);
   const [translation, setTranslation] = useState("-");
   const [showTranslation, setShowTranslation] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -175,6 +176,7 @@ function App() {
       setUsedWords([]);
       setGameOver(true);
       setShowRetry(true);
+      setSelectedGender(null);
       return;
     }
 
@@ -188,6 +190,7 @@ function App() {
     }
 
     setFeedback(null);
+    setSelectedGender(null);
     setKeyLock(false);
     setShowTranslation(false);
   }
@@ -201,11 +204,9 @@ function App() {
 
       let translation = data.responseData?.translatedText || "-";
 
-      // If translation just repeats the original word (case insensitive, even partial)
       if (
         translation.toLowerCase().includes(word.toLowerCase())
       ) {
-        // Try to find a better match in data.matches
         const betterMatch = data.matches?.find(
           m => !m.translation.toLowerCase().includes(word.toLowerCase())
         );
@@ -524,10 +525,13 @@ function App() {
                   key={gender}
                   className={`btn ${feedback && currentWord.gender === gender
                     ? "correct"
-                    : feedback === "wrong" && currentWord.gender !== gender
-                    ? "wrong"
+                    : selectedGender === gender ?
+                    "wrong"
                     : ""}`}
-                  onClick={() => handleChoice(gender)}
+                  onClick={() => {
+                    handleChoice(gender);
+                    setSelectedGender(i === 0 ? "M" : i === 1 ? "F" : "N")
+                  }}
                   disabled={showRetry}
                 >
                   {currentPrinciple.articles[i]}
@@ -545,9 +549,13 @@ function App() {
 
 function splitLongWord(word) {
   if (!word || typeof word !== 'string') return '';
-  if (word.length <= 21) return word;
   const mid = Math.floor(word.length / 2);
-  return <>{word.slice(0, mid)}<br />-{word.slice(mid)}</>;
+  if (window.innerWidth < 768 && word.length >= 15) {
+    return <>{word.slice(0, mid)}<br />-{word.slice(mid)}</>;
+  } else {
+    if (word.length <= 21) return word;
+    return <>{word.slice(0, mid)}<br />-{word.slice(mid)}</>;
+  }
 }
 
 export default App;
